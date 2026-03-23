@@ -16,10 +16,15 @@ from agent_framework.azure import AzureAIAgentClient
 from azure.ai.agentserver.agentframework import from_agent_framework
 from azure.identity.aio import DefaultAzureCredential
 
-# Configure these for your Foundry project
-# Read the explicit variables present in the .env file
-PROJECT_ENDPOINT = os.getenv("PROJECT_ENDPOINT")  # e.g., "https://<project>.services.ai.azure.com"
-MODEL_DEPLOYMENT_NAME = os.getenv("MODEL_DEPLOYMENT_NAME", "gpt-4.1-mini")  # Your model deployment name e.g., "gpt-4.1-mini"
+# Configure these for your Foundry project via environment variables (see .env.sample)
+PROJECT_ENDPOINT = os.getenv("PROJECT_ENDPOINT")
+MODEL_DEPLOYMENT_NAME = os.getenv("MODEL_DEPLOYMENT_NAME", "gpt-4.1-mini")
+
+if not PROJECT_ENDPOINT:
+    raise SystemExit(
+        "Error: PROJECT_ENDPOINT environment variable is not set.\n"
+        "Copy .env.sample to .env and fill in your Azure AI Foundry project endpoint."
+    )
 
 
 # Simulated hotel data for Seattle

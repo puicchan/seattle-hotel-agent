@@ -1,13 +1,9 @@
-## [project-title] Changelog
+## Seattle Hotel Agent Changelog
 
-<a name="x.y.z"></a>
-# x.y.z (yyyy-mm-dd)
+### 1.0.0 (2026-03-23)
 
 *Features*
-* ...
-
-*Bug Fixes*
-* ...
-
-*Breaking Changes*
-* ...
+* Initial release of the Seattle Hotel Agent sample
+* Tool-calling agent with simulated hotel availability data
+* Dockerfile for container deployment to Azure AI Foundry
+* Compatible with `azd ai agent init` and `azd up` workflow
