@@ -1,183 +1,166 @@
-# Microsoft Foundry `azd` bicep starter kit (basic)
+**IMPORTANT!** All samples and other resources made available in this GitHub repository ("samples") are designed to assist in accelerating development of agents, solutions, and agent workflows for various scenarios. Review all provided resources and carefully test output behavior in the context of your use case. AI responses may be inaccurate and AI actions should be monitored with human oversight. Learn more in the transparency documents for [Agent Service](https://learn.microsoft.com/en-us/azure/ai-foundry/responsible-ai/agents/transparency-note) and [Agent Framework](https://github.com/microsoft/agent-framework/blob/main/TRANSPARENCY_FAQ.md).
 
-This Azure Developer CLI (azd) template provides a streamlined way to provision and deploy Microsoft Foundry resources for building and running AI agents. It includes infrastructure-as-code definitions and sample application code to help you quickly get started with Microsoft Foundry's agent capabilities, including model deployments, workspace configuration, and supporting services like storage and container hosting.
+Agents, solutions, or other output you create may be subject to legal and regulatory requirements, may require licenses, or may not be suitable for all industries, scenarios, or use cases. By using any sample, you are acknowledging that any output created using those samples are solely your responsibility, and that you will comply with all applicable laws, regulations, and relevant safety standards, terms of service, and codes of conduct.
 
-This template does **not** include agent code or application code. You will find samples in other repositories such as [foundry-samples](https://github.com/azure-ai-foundry/foundry-samples):
-- [hosted agents samples (python)](https://github.com/azure-ai-foundry/foundry-samples/tree/main/samples/python/hosted-agents)
-- [hosted agents samples (C#)](https://github.com/azure-ai-foundry/foundry-samples/tree/main/samples/csharp/hosted-agents)
+Third-party samples contained in this folder are subject to their own designated terms, and they have not been tested or verified by Microsoft or its affiliates.
 
-[Features](#features) • [Getting Started](#getting-started) • [Guidance](#guidance)
+Microsoft has no responsibility to you or others with respect to any of these samples or any resulting output.
 
-This template, the application code and configuration it contains, has been built to showcase Microsoft Azure specific services and tools. We strongly advise our customers not to make this code part of their production environments without implementing or enabling additional security features.
+# What this sample demonstrates
 
-With any AI solutions you create using these templates, you are responsible for assessing all associated risks, and for complying with all applicable laws and safety standards. Learn more in the transparency documents for [Agent Service](https://learn.microsoft.com/en-us/azure/ai-foundry/responsible-ai/agents/transparency-note) and [Agent Framework](https://github.com/microsoft/agent-framework/blob/main/TRANSPARENCY_FAQ.md).
+This sample demonstrates a **key advantage of code-based hosted agents**:
 
-## Features
+- **Local Python tool execution** - Run custom Python functions as agent tools
 
-This project framework provides the following features:
+Code-based agents can execute **any Python code** you write. This sample includes a Seattle Hotel Agent with a `get_available_hotels` tool that searches for available hotels based on check-in/check-out dates and budget preferences.
 
-* **Microsoft Foundry Project**: Complete setup of Microsoft Foundry workspace with project configuration
-* **Foundry Model Deployments**: Automatic deployment of AI models for agent capabilities
-* **Azure Container Registry**: Container image storage and management for agent deployments
-* **Managed Identity**: Built-in Azure Managed Identity for keyless authentication between services
+The agent is hosted using the [Azure AI AgentServer SDK](https://pypi.org/project/azure-ai-agentserver-agentframework/) and can be deployed to Microsoft Foundry using the Azure Developer CLI.
 
-### Architecture Diagram
+## How It Works
 
-This starter kit will provision the bare minimum for your hosted agent to work (if `ENABLE_HOSTED_AGENTS=true`).
+### Local Tools Integration
 
-| Resource | Description |
-|----------|-------------|
-| [Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry) | Provides a collaborative workspace for AI development with access to models, data, and compute resources |
-| [Azure Container Registry](https://learn.microsoft.com/azure/container-registry/) | Stores and manages container images for secure deployment |
-| [Application Insights](https://learn.microsoft.com/azure/azure-monitor/app/app-insights-overview) | *Optional* - Provides application performance monitoring, logging, and telemetry for debugging and optimization |
-| [Log Analytics Workspace](https://learn.microsoft.com/azure/azure-monitor/logs/log-analytics-workspace-overview) | *Optional* - Collects and analyzes telemetry data for monitoring and troubleshooting |
+In [main.py](main.py), the agent uses a local Python function (`get_available_hotels`) that simulates a hotel availability API. This demonstrates how code-based agents can execute custom server-side logic that prompt agents cannot access.
 
-Those resources will be used by the [`azd ai agent` extension](https://aka.ms/azdaiagent/docs) when building and deploying agents:
+The tool accepts:
+- **check_in_date** - Check-in date in YYYY-MM-DD format
+- **check_out_date** - Check-out date in YYYY-MM-DD format  
+- **max_price** - Maximum price per night in USD (optional, defaults to $500)
 
-```mermaid
-graph TB
-    Dev[👤 Agent Developer]
-    Dev -->|1. build agent<br/>container code| ACR
-    Dev -->|2. deploy agent| AIFP
-    Dev -->|4. query agent| AIFP
+### Agent Hosting
 
-    subgraph "Azure Resource Group"
-        subgraph "Azure AI Foundry Account"
-            AIFP[Azure AI Foundry<br/>Project]
-            Models[Model Deployments]
-        end
-        
-        subgraph ACR[Azure Container Registry]
-            ACC[Agent code container]
-        end
-    end
-    
-    %% Connections
-    AIFP --> Models
-    ACR -->|3. AcrPull| AIFP
-    
-    %% Styling
-    classDef primary fill:#0078d4,stroke:#005a9e,stroke-width:2px,color:#fff
-    classDef secondary fill:#00bcf2,stroke:#0099bc,stroke-width:2px,color:#fff
-    
-    class AIFP,Models primary
-    class ACR secondary
-```
+The agent is hosted using the [Azure AI AgentServer SDK](https://pypi.org/project/azure-ai-agentserver-agentframework/),
+which provisions a REST API endpoint compatible with the OpenAI Responses protocol.
 
-The template is parametrized so that it can be configured with additional resources depending on the agent requirements:
+### Agent Deployment
 
-* deploy AI models by setting `AI_PROJECT_DEPLOYMENTS` with a list of model deployment configs,
-* provision additional resources (Azure AI Search, Bing Search) by setting `AI_PROJECT_DEPENDENT_RESOURCES`,
-* enable monitoring by setting `ENABLE_MONITORING=true` (default on),
-* provision connections by setting `AI_PROJECT_CONNECTIONS` with a list of connection configs.
+The hosted agent can be deployed to Microsoft Foundry using the Azure Developer CLI [ai agent](https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/hosted-agents?view=foundry&tabs=cli#create-a-hosted-agent) extension.
 
-## Getting Started
-
-Note: this repository is not meant to be cloned, but to be consumed as a template in your own project:
-
-```bash
-azd init --template Azure-Samples/ai-foundry-starter-basic
-```
+## Running the Agent Locally
 
 ### Prerequisites
 
-* Install [azd](https://aka.ms/install-azd)
-  * Windows: `winget install microsoft.azd`
-  * Linux: `curl -fsSL https://aka.ms/install-azd.sh | bash`
-  * MacOS: `brew tap azure/azd && brew install azd`
+Before running this sample, ensure you have:
 
-### Quickstart
+1. **Azure AI Foundry Project**
+   - Project created in [Azure AI Foundry](https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-foundry?view=foundry#microsoft-foundry-portals)
+   - Chat model deployed (e.g., `gpt-4o` or `gpt-4.1`)
+   - Note your project endpoint URL and model deployment name
 
-1. Bring down the template code:
+2. **Azure CLI**
+   - Installed and authenticated
+   - Run `az login` and verify with `az account show`
 
-    ```shell
-    azd init --template Azure-Samples/ai-foundry-starter-basic
-    ```
+3. **Python 3.10 or higher**
+   - Verify your version: `python --version`
+   - If you have Python 3.9 or older, install a newer version:
+     - Windows: `winget install Python.Python.3.12`
+     - macOS: `brew install python@3.12`
+     - Linux: Use your package manager
 
-    This will perform a git clone
+### Environment Variables
 
-2. Sign into your Azure account:
+Set the following environment variables (matching `agent.yaml`):
 
-    ```shell
-    azd auth login
-    ```
+- `PROJECT_ENDPOINT` - Your Azure AI Foundry project endpoint URL (required)
+- `MODEL_DEPLOYMENT_NAME` - The deployment name for your chat model (defaults to `gpt-4.1-mini`)
 
-3. Download a sample agent from GitHub:
+This sample loads environment variables from a local `.env` file if present.
 
-    ```shell
-    azd ai agent init -m <repo-path-to-agent.yaml>
-    ```
+Create a `.env` file in this directory with the following content:
 
-You'll find agent samples in the [`foundry-samples` repo](https://github.com/microsoft-foundry/foundry-samples/tree/main/samples/python/hosted-agents).
+```
+PROJECT_ENDPOINT=https://<your-resource>.services.ai.azure.com/api/projects/<your-project>
+MODEL_DEPLOYMENT_NAME=gpt-4.1-mini
+```
 
-## Guidance
+Or set them via PowerShell:
 
-### Region Availability
+```powershell
+# Replace with your actual values
+$env:PROJECT_ENDPOINT="https://<your-resource>.services.ai.azure.com/api/projects/<your-project>"
+$env:MODEL_DEPLOYMENT_NAME="gpt-4.1-mini"
+```
 
-This template does not use specific models. The model deployments are a parameter of the template. Each model may not be available in all Azure regions. Check for [up-to-date region availability of Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-foundry/reference/region-support) and in particular the [Agent Service](https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/model-region-support?tabs=global-standard).
+### Setting Up a Virtual Environment
 
-## Resource Clean-up
+It's recommended to use a virtual environment to isolate project dependencies:
 
-To prevent incurring unnecessary charges, it's important to clean up your Azure resources after completing your work with the application.
+**macOS/Linux:**
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
 
-- **When to Clean Up:**
-  - After you have finished testing or demonstrating the application.
-  - If the application is no longer needed or you have transitioned to a different project or environment.
-  - When you have completed development and are ready to decommission the application.
+**Windows (PowerShell):**
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
 
-- **Deleting Resources:**
-  To delete all associated resources and shut down the application, execute the following command:
-  
-    ```bash
-    azd down
-    ```
+### Installing Dependencies
 
-    Please note that this process may take up to 20 minutes to complete.
+Install the required Python dependencies using pip:
 
-⚠️ Alternatively, you can delete the resource group directly from the Azure Portal to clean up resources.
+```bash
+pip install -r requirements.txt
+```
 
-### Costs
+The required packages are:
+- `azure-ai-agentserver-agentframework` - Agent Framework and AgentServer SDK
+- `python-dotenv` - Load environment variables from `.env` file
+- `azure-identity` - Azure authentication
+- `azure-monitor-opentelemetry-exporter` - Azure Monitor telemetry export
+- `opentelemetry-sdk` / `opentelemetry-api` - OpenTelemetry for tracing
 
-Pricing varies per region and usage, so it isn't possible to predict exact costs for your usage.
-The majority of the Azure resources used in this infrastructure are on usage-based pricing tiers.
+### Running the Sample
 
-You can try the [Azure pricing calculator](https://azure.microsoft.com/pricing/calculator) for the resources deployed in this template.
+To run the agent, execute the following command in your terminal:
 
-* **Microsoft Foundry**: Standard tier. [Pricing](https://azure.microsoft.com/pricing/details/ai-foundry/)
-* **Azure AI Services**: S0 tier, defaults to gpt-4o-mini. Pricing is based on token count. [Pricing](https://azure.microsoft.com/pricing/details/cognitive-services/)
-* **Azure Container Registry**: Basic SKU. Price is per day and on storage. [Pricing](https://azure.microsoft.com/en-us/pricing/details/container-registry/)
-* **Azure Storage Account**: Standard tier, LRS. Pricing is based on storage and operations. [Pricing](https://azure.microsoft.com/pricing/details/storage/blobs/)
-* **Log analytics**: Pay-as-you-go tier. Costs based on data ingested. [Pricing](https://azure.microsoft.com/pricing/details/monitor/)
-* **Azure AI Search**: Basic tier, LRS. Price is per day and based on transactions. [Pricing](https://azure.microsoft.com/en-us/pricing/details/search/)
-* **Grounding with Bing Search**: G1 tier. Costs based on transactions. [Pricing](https://www.microsoft.com/en-us/bing/apis/grounding-pricing)
+```powershell
+python main.py
+```
 
-⚠️ To avoid unnecessary costs, remember to take down your app if it's no longer in use, either by deleting the resource group in the Portal or running `azd down`.
+This will start the hosted agent locally on `http://localhost:8088/`.
 
-### Security guidelines
+### Interacting with the Agent
 
-This template also uses [Managed Identity](https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/overview) for local development and deployment.
+**PowerShell (Windows):**
+```powershell
+$body = @{
+   input = "I need a hotel in Seattle from 2025-03-15 to 2025-03-18, budget under $200 per night"
+    stream = $false
+} | ConvertTo-Json
 
-To ensure continued best practices in your own repository, we recommend that anyone creating solutions based on our templates ensure that the [Github secret scanning](https://docs.github.com/code-security/secret-scanning/about-secret-scanning) setting is enabled.
+Invoke-RestMethod -Uri http://localhost:8088/responses -Method Post -Body $body -ContentType "application/json"
+```
 
-You may want to consider additional security measures, such as:
+**Bash/curl (Linux/macOS):**
+```bash
+curl -sS -H "Content-Type: application/json" -X POST http://localhost:8088/responses \
+   -d '{"input": "Find me hotels in Seattle for March 20-23, 2025 under $200 per night","stream":false}'
+```
 
-- Enabling Microsoft Defender for Cloud to [secure your Azure resources](https://learn.microsoft.com/azure/defender-for-cloud/).
-- Protecting the Azure Container Apps instance with a [firewall](https://learn.microsoft.com/azure/container-apps/waf-app-gateway) and/or [Virtual Network](https://learn.microsoft.com/azure/container-apps/networking?tabs=workload-profiles-env%2Cazure-cli).
+The agent will use the `get_available_hotels` tool to search for available hotels matching your criteria.
 
-> **Important Security Notice** <br/>
-This template, the application code and configuration it contains, has been built to showcase Microsoft Azure specific services and tools. We strongly advise our customers not to make this code part of their production environments without implementing or enabling additional security features.  <br/><br/>
-For a more comprehensive list of best practices and security recommendations for Intelligent Applications, [visit our official documentation](https://learn.microsoft.com/en-us/azure/ai-foundry/).
+### Deploying the Agent to Microsoft Foundry
 
-## Additional Disclaimers
+To deploy your agent to Microsoft Foundry, follow the comprehensive deployment guide at https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/hosted-agents?view=foundry&tabs=cli
 
-**Trademarks** This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft trademarks or logos is subject to and must follow [Microsoft’s Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general). Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship. Any use of third-party trademarks or logos are subject to those third-party’s policies.
+## Troubleshooting
 
-To the extent that the Software includes components or code used in or derived from Microsoft products or services, including without limitation Microsoft Azure Services (collectively, “Microsoft Products and Services”), you must also comply with the Product Terms applicable to such Microsoft Products and Services. You acknowledge and agree that the license governing the Software does not grant you a license or other right to use Microsoft Products and Services. Nothing in the license or this ReadMe file will serve to supersede, amend, terminate or modify any terms in the Product Terms for any Microsoft Products and Services.
+### Images built on Apple Silicon or other ARM64 machines do not work on our service
 
-You must also comply with all domestic and international export laws and regulations that apply to the Software, which include restrictions on destinations, end users, and end use. For further information on export restrictions, visit <https://aka.ms/exporting>.
+We **recommend using `azd` cloud build**, which always builds images with the correct architecture.
 
-You acknowledge that the Software and Microsoft Products and Services (1) are not designed, intended or made available as a medical device(s), and (2) are not designed or intended to be a substitute for professional medical advice, diagnosis, treatment, or judgment and should not be used to replace or as a substitute for professional medical advice, diagnosis, treatment, or judgment. Customer is solely responsible for displaying and/or obtaining appropriate consents, warnings, disclaimers, and acknowledgements to end users of Customer’s implementation of the Online Services.
+If you choose to **build locally**, and your machine is **not `linux/amd64`** (for example, an Apple Silicon Mac), the image will **not be compatible with our service**, causing runtime failures.
 
-You acknowledge the Software is not subject to SOC 1 and SOC 2 compliance audits. No Microsoft technology, nor any of its component technologies, including the Software, is intended or made available as a substitute for the professional advice, opinion, or judgement of a certified financial services professional. Do not use the Software to replace, substitute, or provide professional financial advice or judgment.  
+**Fix for local builds**
 
-BY ACCESSING OR USING THE SOFTWARE, YOU ACKNOWLEDGE THAT THE SOFTWARE IS NOT DESIGNED OR INTENDED TO SUPPORT ANY USE IN WHICH A SERVICE INTERRUPTION, DEFECT, ERROR, OR OTHER FAILURE OF THE SOFTWARE COULD RESULT IN THE DEATH OR SERIOUS BODILY INJURY OF ANY PERSON OR IN PHYSICAL OR ENVIRONMENTAL DAMAGE (COLLECTIVELY, “HIGH-RISK USE”), AND THAT YOU WILL ENSURE THAT, IN THE EVENT OF ANY INTERRUPTION, DEFECT, ERROR, OR OTHER FAILURE OF THE SOFTWARE, THE SAFETY OF PEOPLE, PROPERTY, AND THE ENVIRONMENT ARE NOT REDUCED BELOW A LEVEL THAT IS REASONABLY, APPROPRIATE, AND LEGAL, WHETHER IN GENERAL OR IN A SPECIFIC INDUSTRY. BY ACCESSING THE SOFTWARE, YOU FURTHER ACKNOWLEDGE THAT YOUR HIGH-RISK USE OF THE SOFTWARE IS AT YOUR OWN RISK.
+Use this command to build the image locally:
+
+```shell
+docker build --platform=linux/amd64 -t image .
+```
+
+This forces the image to be built for the required `amd64` architecture.
