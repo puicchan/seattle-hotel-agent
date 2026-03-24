@@ -25,7 +25,8 @@ The agent uses a simulated hotel database and a tool-calling pattern to:
 ### Deploy to Azure
 
 ```bash
-azd init -t puicchan/seattle-hotel-agent
+git clone https://github.com/puicchan/seattle-hotel-agent
+cd seattle-hotel-agent
 azd ai agent init
 azd up
 ```
