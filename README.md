@@ -5,9 +5,9 @@ A sample AI agent built with [Microsoft Agent Framework](https://learn.microsoft
 > [!IMPORTANT]
 > **Blog post:** [Azure Developer CLI (azd): Debug hosted AI agents from your terminal](https://devblogs.microsoft.com/azure-sdk/azd-ai-agent-logs-status/)
 >
-> Code has been updated 4/28/2026 so that it works with hosted agents (v1.0 release of Microsoft Agent Framework).
+> Code has been updated 4/28/2026 so that it works with hosted agents ([v1.0 release of Microsoft Agent Framework](https://devblogs.microsoft.com/foundry/from-local-to-production-the-complete-developer-journey-for-building-composing-and-deploying-ai-agents/)).
 >
-> **Make sure to deploy to a supported region** ([Region Availability](https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/hosted-agents?branch=release-hosted-agents-vnext#region-availability)).
+> **Make sure to deploy to a supported region** ([Region Availability](https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents?branch=release-hosted-agents-vnext#region-availability)).
 
 ## What it does
 
