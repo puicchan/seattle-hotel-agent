@@ -2,10 +2,12 @@
 
 A sample AI agent built with [Microsoft Agent Framework](https://learn.microsoft.com/azure/ai-services/agents/) that helps users find hotels in Seattle. This project is designed as an `azd` starter template for deploying hosted AI agents to [Azure AI Foundry](https://learn.microsoft.com/azure/ai-studio/).
 
+> [!IMPORTANT]
 > **Blog post:** [Azure Developer CLI (azd): Debug hosted AI agents from your terminal](https://devblogs.microsoft.com/azure-sdk/azd-ai-agent-logs-status/)
 >
-> Code has been updated so that it works with hosted agent (v1.0 release of Microsoft Agent Framework.) Make sure to deploy to a supported region ([Region Availability](https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/hosted-agents?branch=release-hosted-agents-vnext#region-availability)).
-
+> Code has been updated 4/28/2026 so that it works with hosted agents (v1.0 release of Microsoft Agent Framework).
+>
+> **Make sure to deploy to a supported region** ([Region Availability](https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/hosted-agents?branch=release-hosted-agents-vnext#region-availability)).
 
 ## What it does
 
