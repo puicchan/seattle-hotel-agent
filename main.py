@@ -4,20 +4,20 @@ Uses Microsoft Agent Framework with Azure AI Foundry.
 Ready for deployment to Foundry Hosted Agent service.
 """
 
-import asyncio
 import os
-from typing import Annotated
 from datetime import datetime
+from typing import Annotated
+
+from agent_framework import Agent, tool
+from agent_framework.foundry import FoundryChatClient
+from agent_framework_foundry_hosting import ResponsesHostServer
+from azure.identity import ChainedTokenCredential, AzureDeveloperCliCredential, ManagedIdentityCredential
 from dotenv import load_dotenv
 
 load_dotenv(override=True)
 
-from agent_framework.azure import AzureAIAgentClient
-from azure.ai.agentserver.agentframework import from_agent_framework
-from azure.identity.aio import DefaultAzureCredential
-
 # Configure these for your Foundry project via environment variables (see .env.sample)
-PROJECT_ENDPOINT = os.getenv("AZURE_AI_PROJECT_ENDPOINT")
+PROJECT_ENDPOINT = os.getenv("FOUNDRY_PROJECT_ENDPOINT") or os.getenv("AZURE_AI_PROJECT_ENDPOINT")
 MODEL_DEPLOYMENT_NAME = os.getenv("AZURE_AI_MODEL_DEPLOYMENT_NAME")
 
 if not PROJECT_ENDPOINT:
@@ -38,6 +38,7 @@ SEATTLE_HOTELS = [
 ]
 
 
+@tool
 def get_available_hotels(
     check_in_date: Annotated[str, "Check-in date in YYYY-MM-DD format"],
     check_out_date: Annotated[str, "Check-out date in YYYY-MM-DD format"],
@@ -83,19 +84,22 @@ def get_available_hotels(
         return f"Error parsing dates. Please use YYYY-MM-DD format. Details: {str(e)}"
 
 
-async def main():
+def main():
     """Main function to run the agent as a web server."""
-    async with (
-        DefaultAzureCredential() as credential,
-        AzureAIAgentClient(
-            project_endpoint=PROJECT_ENDPOINT,
-            model_deployment_name=MODEL_DEPLOYMENT_NAME,
-            credential=credential,
-        ) as client,
-    ):
-        agent = client.create_agent(
-            name="SeattleHotelAgent",
-            instructions="""You are a helpful travel assistant specializing in finding hotels in Seattle, Washington.
+    user_assigned_managed_identity_credential = ManagedIdentityCredential(client_id=os.getenv("AZURE_CLIENT_ID"))
+    azure_dev_cli_credential = AzureDeveloperCliCredential(tenant_id=os.getenv("AZURE_TENANT_ID"), process_timeout=60)
+    credential = ChainedTokenCredential(user_assigned_managed_identity_credential, azure_dev_cli_credential)
+
+    client = FoundryChatClient(
+        project_endpoint=PROJECT_ENDPOINT,
+        model=MODEL_DEPLOYMENT_NAME,
+        credential=credential,
+    )
+
+    agent = Agent(
+        client=client,
+        name="SeattleHotelAgent",
+        instructions="""You are a helpful travel assistant specializing in finding hotels in Seattle, Washington.
 
 When a user asks about hotels in Seattle:
 1. Ask for their check-in and check-out dates if not provided
@@ -106,13 +110,12 @@ When a user asks about hotels in Seattle:
 
 Be conversational and helpful. If users ask about things outside of Seattle hotels, 
 politely let them know you specialize in Seattle hotel recommendations.""",
-            tools=[get_available_hotels],
-        )
+        tools=[get_available_hotels],
+    )
 
-        print("Seattle Hotel Agent Server running on http://localhost:8088")
-        server = from_agent_framework(agent)
-        await server.run_async()
-
+    print("Seattle Hotel Agent Server running on http://localhost:8088")
+    server = ResponsesHostServer(agent)
+    server.run()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
